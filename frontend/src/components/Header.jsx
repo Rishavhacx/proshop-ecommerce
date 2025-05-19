@@ -18,9 +18,9 @@ const Header = () => {
 
   const [logoutApiCall] = useLogoutMutation();
   
-  const logoutHandler = () => {
+  const logoutHandler = async () => {
     try {
-    logoutApiCall().unwrap();
+    await logoutApiCall().unwrap();
     dispatch(logout());
     dispatch(resetCart());
     navigate("/login");
