@@ -1,36 +1,34 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { Link, useLocation,useNavigate } from "react-router-dom";
-import {useDispatch, useSelector} from 'react-redux';
-import FormContainer from "./FormContainer";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import FormContainer from "../components/FormContainer";
 import { Form, Button, Row, Col } from "react-bootstrap";
-import Loader from '../components/Loader';
-import { useLoginMutation} from '../slices/userApiSlice';
-import {setCredentials} from '../slices/authSlice';
-import { toast } from 'react-toastify';
-
-
+import Loader from "../components/Loader";
+import { useLoginMutation } from "../slices/userApiSlice";
+import { setCredentials } from "../slices/authSlice";
+import { toast } from "react-toastify";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-const dispatch = useDispatch();
-const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-const [login, { isLoading }] = useLoginMutation();
+  const [login, { isLoading }] = useLoginMutation();
 
-const { userInfo } = useSelector((state) => state.auth);
+  const { userInfo } = useSelector((state) => state.auth);
 
-const { search } = useLocation();
-const sp = new URLSearchParams(search);
-const redirect = sp.get("redirect") || "/";
+  const { search } = useLocation();
+  const sp = new URLSearchParams(search);
+  const redirect = sp.get("redirect") || "/";
 
-useEffect(() => {
-  if (userInfo) {
-    navigate(redirect);
-  }
-}, [userInfo, redirect, navigate]);
+  useEffect(() => {
+    if (userInfo) {
+      navigate(redirect);
+    }
+  }, [userInfo, redirect, navigate]);
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -67,14 +65,22 @@ useEffect(() => {
           />
         </Form.Group>
 
-        <Button type="submit" variant="primary" className="mt-2" disabled={isLoading}>
+        <Button
+          type="submit"
+          variant="primary"
+          className="mt-2"
+          disabled={isLoading}
+        >
           Login
         </Button>
         {isLoading && <Loader />}
       </Form>
       <Row className="py-3">
         <Col>
-          New Customer? <Link to={redirect ? `/register?redirect=${redirect}` : "/register"}>Register</Link>
+          New Customer?{" "}
+          <Link to={redirect ? `/register?redirect=${redirect}` : "/register"}>
+            Register
+          </Link>
         </Col>
       </Row>
     </FormContainer>
