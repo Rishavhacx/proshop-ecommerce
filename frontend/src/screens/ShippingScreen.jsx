@@ -30,13 +30,22 @@ const ShippingScreen = () => {
   }
 
   try {
-    dispatch(saveShippingAddress({ address, city, postalCode, country }));
-    toast.success('Shipping address saved');
-    navigate("/payment");
-  } catch (err) {
-    toast.error('Error saving shipping address');
-  }
-};
+   dispatch(
+        saveShippingAddress({
+          address,
+          city,
+          postalCode,
+          country,
+        })
+      );
+      console.log('Navigate to payment');
+      // Use absolute path instead of relative
+      navigate("/payment", { replace: true });
+    } catch (err) {
+      toast.error(err?.message || 'Error saving shipping address');
+      console.error('Shipping error:', err);
+    }
+  };
 
   return (
     <FormContainer>
