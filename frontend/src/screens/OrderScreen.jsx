@@ -1,14 +1,102 @@
-import {Link, useParams } from 'react-router-dom'
-import {Row, Col, ListGroup, Image, Form, Card, Button} from 'react-bootstrap'
-import Message from '../components/Message'
-import Loader from '../components/Loader'
-import { useGetOrderDetailsQuery } from '../slices/orderApiSlice'
+import { Link, useParams } from "react-router-dom";
+import {
+  Row,
+  Col,
+  ListGroup,
+  Image,
+  Form,
+  Card,
+  Button,
+} from "react-bootstrap";
+import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
+import { toast } from "react-toastify";
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
+import Message from "../components/Message";
+import Loader from "../components/Loader";
+import {
+  useGetOrderDetailsQuery,
+  usePayOrderMutation,
+  useGetPaypalClientIdQuery,
+} from "../slices/orderApiSlice";
 
 const OrderScreen = () => {
-  const { id: orderId } = useParams()
-  const { data: order, refetch, isLoading, error } = useGetOrderDetailsQuery(orderId)
+  const { id: orderId } = useParams();
+  const {
+    data: order,
+    refetch,
+    isLoading,
+    error,
+  } = useGetOrderDetailsQuery(orderId);
 
-  return isLoading ? <Loader /> : error ? <Message variant="danger">{error.message}</Message> : (
+  const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation();
+  const [{ isPending }, paypalDispatch] = usePayPalScriptReducer();
+  const {
+    data: paypal,
+    isLoading: loadingPayPal,
+    error: errorpayPal,
+  } = useGetPaypalClientIdQuery();
+  const { userInfo } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (!errorpayPal && !loadingPayPal && paypal.clientId) {
+      const loadPayPalScript = async () => {
+        paypalDispatch({
+          type: "resetOptions",
+          value: {
+            clientId: paypal.clientId,
+            currency: "USD",
+          },
+        });
+        paypalDispatch({ type: "setLoadingStatus", value: "pending" });
+      };
+      if (order && !order.isPaid) {
+        if (!window.paypal) {
+          loadPayPalScript();
+        }
+      }
+    }
+  }, [order, paypal, paypalDispatch, loadingPayPal, errorpayPal]);
+
+  function onApprove(data, actions) {
+    return actions.order.capture().then(async (details) => {
+      try {
+        await payOrder({ orderId: order._id, details });
+        toast.success('Payment successful');
+        refetch();
+      } catch (err) {
+        toast.error(err?.data?.message || err.message);
+      }
+    });
+  }
+  async function onApproveTest() {
+    await payOrder({ orderId: order._id, details: { payer: {} } });
+    toast.success('Payment successful');
+    refetch();
+  }
+  function onError(err) {
+    toast.error(err?.data?.message || err.message);
+  }
+  function createOrder(data, actions) {
+    return actions.order.create({
+      purchase_units: [
+        {
+          amount: {
+            currency_code: "USD",
+            value: order.totalPrice,
+          },
+        },
+      ],
+    }).then((orderId) => {
+      return orderId;
+    });
+  }
+
+  return isLoading ? (
+    <Loader />
+  ) : error ? (
+    <Message variant="danger">{error.message}</Message>
+  ) : (
     <>
       <h1>Order {order._id}</h1>
       <Row>
@@ -23,9 +111,8 @@ const OrderScreen = () => {
                 <strong>Email:</strong> {order.user.email}
               </p>
               <p>
-                <strong>Address:</strong> {order.shippingAddress.address},{' '}
-                {order.shippingAddress.city}{' '}
-                {order.shippingAddress.postalCode},{' '}
+                <strong>Address:</strong> {order.shippingAddress.address},{" "}
+                {order.shippingAddress.city} {order.shippingAddress.postalCode},{" "}
                 {order.shippingAddress.country}
               </p>
               {order.isDelivered ? (
@@ -43,9 +130,7 @@ const OrderScreen = () => {
                 <strong>Method:</strong> {order.paymentMethod}
               </p>
               {order.isPaid ? (
-                <Message variant="success">
-                  Paid on {order.paidAt}
-                </Message>
+                <Message variant="success">Paid on {order.paidAt}</Message>
               ) : (
                 <Message variant="danger">Not Paid</Message>
               )}
@@ -69,7 +154,7 @@ const OrderScreen = () => {
                           />
                         </Col>
                         <Col>
-                          <Link to={`/product/${item.product}`}>
+                          <Link to={`/product/${item._id}`}>
                             {item.name}
                           </Link>
                         </Col>
@@ -109,21 +194,35 @@ const OrderScreen = () => {
                   <Col>${order.totalPrice}</Col>
                 </Row>
               </ListGroup.Item>
-              <ListGroup.Item>
-                {order.isPaid ? (
-                  <Message variant="success">
-                    Paid on {order.paidAt}
-                  </Message>
-                ) : (
-                  <Message variant="danger">Not Paid</Message>
-                )}
-              </ListGroup.Item>
+              {!order.isPaid && (
+                <ListGroup.Item>
+                  {loadingPay || isPending ? (
+                    <Loader />
+                  ) : (
+                    <div>
+                      <Button
+                        onClick={onApproveTest}
+                        style={{ marginBottom: "10px" }}
+                      >
+                        Test Pay Order
+                      </Button>
+                      <div>
+                        <PayPalButtons
+                          createOrder={createOrder}
+                          onApprove={onApprove}
+                          onError={onError}
+                        ></PayPalButtons>
+                      </div>
+                    </div>
+                  )}
+                </ListGroup.Item>
+              )}
             </ListGroup>
           </Card>
         </Col>
       </Row>
     </>
-  )
-}
+  );
+};
 
-export default OrderScreen
+export default OrderScreen;

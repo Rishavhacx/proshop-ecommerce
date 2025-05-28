@@ -37,8 +37,8 @@ const PlaceOrderScreen = () => {
       console.log(
         "Cart Items Detail:",
         cart.cartItems.map((item) => ({
-          id: item._id,
-          productId: item.product,
+          product: item._id,
+          qty: item.qty,
           name: item.name,
         }))
       );
@@ -49,7 +49,7 @@ const PlaceOrderScreen = () => {
           !item.qty ||
           !item.image ||
           !item.price ||
-          !item.product
+          !item._id
         ) {
           throw new Error(
             `Missing required fields for item: ${JSON.stringify(item)}`
@@ -61,7 +61,7 @@ const PlaceOrderScreen = () => {
           qty: item.qty,
           image: item.image,
           price: item.price,
-          product: item.product,
+          product: item._id,
         };
       });
 
@@ -73,7 +73,7 @@ const PlaceOrderScreen = () => {
         orderItems: formattedOrderItems,
         shippingAddress: cart.shippingAddress,
         paymentMethod: cart.paymentMethod,
-        itemsPrice: cart.itemPrice,
+        itemsPrice: cart.itemsPrice,
         taxPrice: cart.taxPrice,
         shippingPrice: cart.shippingPrice,
         totalPrice: cart.totalPrice,
@@ -130,7 +130,7 @@ const PlaceOrderScreen = () => {
                           />
                         </Col>
                         <Col>
-                          <Link to={`/products/${item.product}`}>
+                          <Link to={`/products/${item._id}`}>
                             {item.name}
                           </Link>
                         </Col>
