@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import FormContainer from "../../components/FormContainer";
 import { Form, Button } from "react-bootstrap";
 import Loader from "../../components/Loader";
@@ -8,6 +7,7 @@ import Message from "../../components/Message";
 import {
   useUpdateProductMutation,
   useGetProductDetailsQuery,
+  useUploadProductImageMutation,
 } from "../../slices/productsApiSlice";
 import { toast } from "react-toastify";
 
@@ -32,8 +32,10 @@ const ProductEditScreen = () => {
   const [updateProduct, { isLoading: loadingUpdate }] =
     useUpdateProductMutation();
 
+  const [uploadProductImage, { isLoading: loadingUpload }] =
+    useUploadProductImageMutation();
+
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   useEffect(() => {
     if (product) {
@@ -62,6 +64,19 @@ const ProductEditScreen = () => {
       });
       toast.success("Product updated successfully");
       navigate("/admin/productlist");
+    } catch (err) {
+      toast.error(err?.data?.message || err.error);
+    }
+  };
+
+  const uploadFileHandler = async (e) => {
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append("image", file);
+    try {
+      const res = await uploadProductImage(formData).unwrap();
+      toast.success(res.message);
+      setImage(res.image);
     } catch (err) {
       toast.error(err?.data?.message || err.error);
     }
@@ -101,13 +116,19 @@ const ProductEditScreen = () => {
               />
             </Form.Group>
 
-            <Form.Group controlId="image" className="my-2"> 
+            <Form.Group controlId="image" className="my-2">
               <Form.Label>Image</Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Enter product image URL"
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
+              />
+              {loadingUpload && <Loader />}
+              <Form.Control
+                type="file"
+                placeholder="Choose File"
+                onChange={uploadFileHandler}
               />
             </Form.Group>
 

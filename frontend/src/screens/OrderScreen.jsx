@@ -197,6 +197,12 @@ const OrderScreen = () => {
               </ListGroup.Item>
               <ListGroup.Item>
                 <Row>
+                  <Col>Tax Price:</Col>
+                  <Col>${order.taxPrice}</Col>
+                </Row>
+              </ListGroup.Item>
+              <ListGroup.Item>
+                <Row>
                   <Col>Shipping:</Col>
                   <Col>${order.shippingPrice}</Col>
                 </Row>
