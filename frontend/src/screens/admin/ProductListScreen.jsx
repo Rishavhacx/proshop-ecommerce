@@ -1,6 +1,8 @@
 import { LinkContainer } from "react-router-bootstrap";
 import { Table, Button, Row, Col } from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { useParams } from "react-router-dom";
+import Paginate from "../../components/Paginate";
 import Message from "../../components/Message";
 import Loader from "../../components/Loader";
 import {
@@ -11,26 +13,28 @@ import {
 import { toast } from "react-toastify";
 
 const ProductListScreen = () => {
-  
-  const { data: products, isLoading, error, refetch } = useGetProductsQuery();
-  
+  const { pageNumber } = useParams();
+
+  const { data, isLoading, error, refetch } = useGetProductsQuery({
+    pageNumber,
+  });
+
   const [createProduct, { isLoading: loadingCreate }] =
     useCreateProductMutation();
 
-  const [deleteProduct, { isLoading: loadingDelete }] = useDeleteProductMutation();
+  const [deleteProduct, { isLoading: loadingDelete }] =
+    useDeleteProductMutation();
 
   const deleteHandler = async (id) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
-      try{
+      try {
         await deleteProduct(id);
-        toast.success('Product Deleted');
+        toast.success("Product Deleted");
         refetch();
-      }
-      catch (err) {
+      } catch (err) {
         toast.error(err?.data?.message || err.error);
       }
-    }
-    else {
+    } else {
       toast.info("Product deletion cancelled");
     }
   };
@@ -79,7 +83,7 @@ const ProductListScreen = () => {
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
+              {data.products.map((product) => (
                 <tr key={product._id}>
                   <td>{product._id}</td>
                   <td>{product.name}</td>
@@ -106,6 +110,11 @@ const ProductListScreen = () => {
               ))}
             </tbody>
           </Table>
+          <Paginate
+            page={data.page}
+            pages={data.pages}
+            isAdmin={true}
+          />
         </>
       )}
     </>
