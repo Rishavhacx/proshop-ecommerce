@@ -14,13 +14,13 @@ const PlaceOrderScreen = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    if (!cart.shippingAddress.address) {
-      navigate("/shipping");
-    } else if (!cart.paymentMethod) {
-      navigate("/payment");
-    }
-  }, [cart.paymentMethod, cart.shippingAddress.address, navigate]);
+  // useEffect(() => {
+  //   if (!cart.shippingAddress.address) {
+  //     navigate("/shipping");
+  //   } else if (!cart.paymentMethod) {
+  //     navigate("/payment");
+  //   }
+  // }, [cart.paymentMethod, cart.shippingAddress.address, navigate]);
 
   const [createOrder, { isLoading, error }] = useCreateOrderMutation();
 
