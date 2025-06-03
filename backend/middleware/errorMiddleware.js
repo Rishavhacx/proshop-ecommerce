@@ -10,10 +10,6 @@ const errorHandler = (err, req, res, next) => {
   let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   let message = err.message;
 
-  if (err.name === 'CastError') {
-    message = `Resource not found - ${err.path}`;
-    statusCode = 404;
-  }
 
   res.status(statusCode).json({
     message: message,

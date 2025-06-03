@@ -40,9 +40,7 @@ const cartSlice = createSlice({
             // localStorage.setItem("cart", JSON.stringify(state.cartItems));
             return updateCart(state);
         },
-        resetCart: (state) => {
-            return {...initialState};
-        },
+        resetCart: (state) => (state = initialState)
     },
 });
 
